@@ -33,7 +33,9 @@
   "dependencies": {
     "commander": "^3.0.1",
     "didyoumean": "^1.2.1",
-    "prompts": "^2.3.0"
+    "prompts": "^2.3.0",
+    "string": "^3.3.3",
+    "terminal-kit": "^1.35.6"
   },
   "devDependencies": {
     "eslint": "^7.2.0",

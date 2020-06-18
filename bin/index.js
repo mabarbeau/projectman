@@ -1,16 +1,9 @@
 #!/usr/bin/env node
+
 const program = require('commander');
-const { suggestCommands } = require('../lib/helper');
 const action = require('../lib/action');
 
 program.version(require('../package.json').version);
-
-// Commands
-program
-  .command('open [projectName]')
-  .alias('o')
-  .description('Open one of your saved projects')
-  .action(action.openProject);
 
 program
   .command('add [projectDirectory]')
@@ -25,41 +18,21 @@ program
   .action(action.removeProject);
 
 program
-  .command('seteditor [commandToOpen]')
-  .description('Set text editor to use')
-  .option('-f|--for-project [projectName]', 'set different editor for specific project')
-  .action(action.setEditor);
-
-program
-  .command('rmeditor [projectName]')
-  .description('Remove text editor to use')
-  .option('-a|--all', 'remove editors from all projects')
-  .action(action.rmEditor);
-
-program
-  .command('edit')
-  .description('Edit settings.json')
-  .action(action.editConfigurations);
-
-program
   .command('getpath [projectName]')
   .alias('gp')
   .description('Get project path')
   .action(action.getProjectPath);
 
-program
-  .arguments('<command>')
-  .action((command) => {
-    console.log(`Command ${command} not found\n`);
+program.action(async () => {
+  if (!(await action.runProjectCommands())) {
     program.outputHelp();
-    suggestCommands(command);
-  });
+  }
+});
 
 program.usage('<command>');
 
-if (process.argv.length <= 2) { // If no command mentioned then output help
-  action.openProject();
+if (process.argv.length <= 2) {
+  action.runProjectCommands();
 }
 
-// Parse arguments
 program.parse(process.argv);
