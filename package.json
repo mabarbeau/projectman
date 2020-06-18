@@ -9,6 +9,7 @@
   },
   "preferGlobal": true,
   "scripts": {
+    "test": "jest",
     "build": "pkg ./package.json --out-path ./dist || echo '\nPlease first `npm install -g pkg` to run this command'"
   },
   "repository": {
@@ -34,5 +35,6 @@
     "prompts": "^2.3.0"
   },
   "devDependencies": {
+    "jest": "^26.0.1"
   }
 }
