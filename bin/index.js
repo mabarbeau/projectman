@@ -17,12 +17,6 @@ program
   .description('Remove the project')
   .action(action.removeProject);
 
-program
-  .command('getpath [projectName]')
-  .alias('gp')
-  .description('Get project path')
-  .action(action.getProjectPath);
-
 program.action(async () => {
   if (!(await action.runProjectCommands())) {
     program.outputHelp();
