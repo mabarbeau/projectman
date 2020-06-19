@@ -8,12 +8,12 @@ const { spawn } = require('child_process');
 
 const settingsData = require('./settings');
 
-// Create settings.json if does not exist or just require it if it does exist
+// Create settings.js if does not exist or just require it if it does exist
 const settingsPath = path.join(os.homedir(), '.projectman', 'settings.js');
 
 let settings;
 try {
-  // eslint-disable-next-line
+  // eslint-disable-next-line import/no-dynamic-require, global-require
   settings = require(settingsPath);
 } catch (err) {
   if (err.code === 'MODULE_NOT_FOUND') {
