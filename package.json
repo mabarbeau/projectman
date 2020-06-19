@@ -33,8 +33,9 @@
   },
   "homepage": "https://github.com/mabarbeau/projectman#readme",
   "dependencies": {
-    "commander": "^3.0.1",
-    "prompts": "^2.3.0",
+    "commander": "^3.0.2",
+    "figlet": "^1.4.0",
+    "prompts": "^2.3.2",
     "string": "^3.3.3",
     "terminal-kit": "^1.35.6"
   },
