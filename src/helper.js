@@ -15,6 +15,7 @@ const settingsData = {
   },
   scripts: {
     code: 'code .',
+    open: 'finder .',
   },
   projects: [],
 };
