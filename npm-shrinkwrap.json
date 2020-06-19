@@ -2004,11 +2004,6 @@
       "integrity": "sha512-TLz+x/vEXm/Y7P7wn1EJFNLxYpUD4TgMosxY6fAVJUnJMbupHBOncxyWUG9OpTaH9EBD7uFI5LfEgmMOc54DsA==",
       "dev": true
     },
-    "didyoumean": {
-      "version": "1.2.1",
-      "resolved": "https://registry.npmjs.org/didyoumean/-/didyoumean-1.2.1.tgz",
-      "integrity": "sha1-6S7f2tplN9SE1zwBcv0eugxJdv8="
-    },
     "diff-sequences": {
       "version": "26.0.0",
       "resolved": "https://registry.npmjs.org/diff-sequences/-/diff-sequences-26.0.0.tgz",

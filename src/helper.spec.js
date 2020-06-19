@@ -2,7 +2,6 @@ const {
   settings,
   writeSettings,
   isURL,
-  suggestCommands,
   onCancel,
   getChoices,
   selectProject,
@@ -18,9 +17,6 @@ test('`writeSettings` is a function', () => {
 
 test('`isURL` is a function', () => {
   expect(typeof isURL).toBe('function');
-});
-test('`suggestCommands` is a function', () => {
-  expect(typeof suggestCommands).toBe('function');
 });
 test('`onCancel` is a function', () => {
   expect(typeof onCancel).toBe('function');

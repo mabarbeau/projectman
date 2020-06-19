@@ -1,6 +1,4 @@
 const prompts = require('prompts');
-const program = require('commander');
-const didYouMean = require('didyoumean');
 const term = require('terminal-kit').terminal;
 
 const path = require('path');
@@ -82,17 +80,6 @@ function isURL(str) {
 const suggestFilter = (input, choices) => Promise.resolve(
   choices.filter((choice) => choice.title.toLowerCase().includes(input.toLowerCase())),
 );
-
-const suggestCommands = (cmd) => {
-  const suggestion = didYouMean(
-    cmd,
-    // eslint-disable-next-line no-underscore-dangle
-    program.commands.map((folder) => folder._name),
-  );
-  if (suggestion) {
-    term(`Did you mean \`${suggestion}\`?`);
-  }
-};
 
 const onCancel = () => {
   term.red("See ya ('__') /");
@@ -177,7 +164,6 @@ module.exports = {
   settings,
   writeSettings,
   isURL,
-  suggestCommands,
   onCancel,
   getChoices,
   selectProject,
