@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 const program = require('commander');
-const action = require('../lib/action');
+const action = require('./action');
 
 program.version(require('../package.json').version);
 

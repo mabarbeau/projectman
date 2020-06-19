@@ -7,9 +7,17 @@ const path = require('path');
 const fs = require('fs');
 const os = require('os');
 
-// Default settings.
 const settingsData = {
-  commandToOpen: 'code',
+  options: {
+    '--grep': {
+      alias: '-d',
+      // eslint-disable-next-line no-template-curly-in-string
+      command: '${0} | grep ${1}',
+    },
+  },
+  scripts: {
+    code: 'code .',
+  },
   projects: [],
 };
 
@@ -89,7 +97,6 @@ const suggestCommands = (cmd) => {
 const onCancel = () => {
   term.red("See ya ('__') /");
   process.exit();
-  return false;
 };
 
 function getChoices(customFilter = () => true) {
@@ -155,6 +162,7 @@ async function selectScript(
               : value,
         })),
         limit: 40,
+        suggest: suggestFilter,
       },
     ],
     { onCancel },
@@ -164,8 +172,6 @@ async function selectScript(
     ? { script, remainingArgs }
     : selectScript(project, args, script);
 }
-
-// Helper funcitions [END]
 
 module.exports = {
   settings,

@@ -1,10 +1,10 @@
 {
   "name": "projectman",
   "version": "1.3.3",
-  "description": "Hate opening folders? Select and open your projects in your favourite editor straight from your command line without 'CD'ing into the deeply nested folders.",
-  "main": "bin/index.js",
+  "description": "Hate opening folders? Select and open your projects in your favorite editor straight from your command line without 'CD'ing into the deeply nested folders.",
+  "main": "src/index.js",
   "bin": {
-    "pm": "bin/index.js"
+    "pm": "src/index.js"
   },
   "preferGlobal": true,
   "scripts": {
