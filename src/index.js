@@ -1,32 +1,21 @@
 #!/usr/bin/env node
+import App from './App';
 
-const program = require('commander');
-const action = require('./action');
+const os = require('os');
+const path = require('path');
+const figlet = require('figlet');
+const term = require('terminal-kit').terminal;
 
-program.version(require('../package.json').version);
+term.clear();
 
-program
-  .command('add [projectDirectory]')
-  .alias('save')
-  .option('-u, --url [link]', 'Add a link to a repository to projects')
-  .description('Save current directory as a project')
-  .action(action.addProject);
+term.red(
+  `\n${figlet.textSync(' ProjectMan', {
+    horizontalLayout: 'default',
+    font: 'ANSI Shadow',
+  })}\n`,
+);
 
-program
-  .command('remove [projectName]')
-  .description('Remove the project')
-  .action(action.removeProject);
-
-program.action(async () => {
-  if (!(await action.runProjectCommands())) {
-    program.outputHelp();
-  }
+// eslint-disable-next-line no-unused-vars
+const app = new App({
+  settingsPath: path.join(os.homedir(), '.projectman', 'settings.js'),
 });
-
-program.usage('<command>');
-
-if (process.argv.length <= 2) {
-  action.runProjectCommands();
-}
-
-program.parse(process.argv);
