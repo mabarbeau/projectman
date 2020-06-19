@@ -4,7 +4,6 @@
   "description": "Hate opening folders? Select and open your projects in your favourite editor straight from your command line without 'CD'ing into the deeply nested folders.",
   "main": "bin/index.js",
   "bin": {
-    "projectman": "bin/index.js",
     "pm": "bin/index.js"
   },
   "preferGlobal": true,
@@ -15,7 +14,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/saurabhdaware/projectman.git"
+    "url": "git+https://github.com/mabarbeau/projectman.git"
   },
   "keywords": [
     "project-manager",
@@ -24,12 +23,15 @@
     "projectmanager",
     "congifure-projects"
   ],
-  "author": "Saurabh Daware <saurabhdaware99@gmail.com> (https://saurabhdaware.in)",
+  "authors": [
+    "Saurabh Daware <saurabhdaware99@gmail.com> (https://saurabhdaware.in)",
+    "Marc Barbeau <hello@marcbarbeau.com> (https://marcbarbeau.com)"
+  ],
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/saurabhdaware/projectman/issues"
+    "url": "https://github.com/mabarbeau/projectman/issues"
   },
-  "homepage": "https://github.com/saurabhdaware/projectman#readme",
+  "homepage": "https://github.com/mabarbeau/projectman#readme",
   "dependencies": {
     "commander": "^3.0.1",
     "didyoumean": "^1.2.1",
