@@ -1,48 +1,70 @@
-const fs = require('fs');
-const os = require('os');
-const path = require('path');
-const figlet = require('figlet');
-const program = require('commander');
-const term = require('terminal-kit').terminal;
-const S = require('string');
-const prompts = require('prompts');
-const { spawn } = require('child_process');
-const settingsData = require('./settings');
+import fs from "fs";
+import os from "os";
+import path from "path";
+import figlet from "figlet";
+import program from "commander";
+import { terminal as term} from "terminal-kit";
+import S from "string";
+import prompts from 'prompts';
+import { spawn } from "child_process";
+
+interface SettingsData {
+  projects: any[];
+  scripts: any;
+}
 
 export default class App {
-  constructor({ settingsPath }) {
+  protected settingsPath: string
+  protected settings: SettingsData
+  suggestFilter = (input: string, choices: any[]) => Promise.resolve(
+    choices.filter((choice: { title: string; }) => choice.title.toLowerCase().includes(input.toLowerCase())),
+  );
+  onCancel = () => {
+    term.red("See ya ('__') /");
+    process.exit();
+  };
+  isURL = (str: string) => {
+    return !/(http|https):\/\/(\w+:{0,1}\w*)?(\S+)(:[0-9]+)?(\/|\/([\w#!:.?+=&%!\-/]))?/.test(str)
+  }
+  
+  constructor({ settingsPath, setting }: { setting: SettingsData, settingsPath: any }) {
+    this.settings = setting;
     this.settingsPath = settingsPath;
     try {
-      if (!fs.existsSync(this.settingsPath)) this.init();
+      if (!fs.existsSync(this.settingsPath)) {
+        this.init(this.settings);
+      } else {
+        this.settings = require(settingsPath);
+      }
       this.boot();
     } catch (err) {
       this.error(err);
     }
-    // eslint-disable-next-line global-require, import/no-dynamic-require
-    this.settings = require(settingsPath);
   }
 
-  init() {
+  init(setting: SettingsData) {
     term(
-      `${figlet.textSync('      Initialized', {
-        horizontalLayout: 'default',
-        font: 'JS Block Letters',
-      })}\n\n`,
+      `${figlet.textSync("  Initialized", {
+        horizontalLayout: "default",
+        font: "JS Block Letters",
+      })}\n\n`
     );
-    term('Add project with `pm add`');
-    const settingsDir = path.join(os.homedir(), '.projectman');
+    term('    Add project with `pm add`');
+    const settingsDir = path.join(os.homedir(), '.playbook');
     if (!fs.existsSync(settingsDir)) {
       fs.mkdirSync(settingsDir);
     }
     fs.writeFileSync(
       this.settingsPath,
-      `module.exports = ${JSON.stringify(settingsData, null, 4)}`,
-      'utf8',
+      `module.exports = ${JSON.stringify(setting, null, 4)}`,
+      "utf8"
     );
   }
 
   boot() {
-    program.version(process.env.npm_package_version);
+    if (process.env.npm_package_version) {
+      program.version(process.env.npm_package_version);
+    }
 
     program
       .command('add [projectDirectory]')
@@ -85,29 +107,29 @@ export default class App {
 
     remainingArgs.unshift(selectedProject.path);
 
-    const temp = `source ~/.projectman/index.bash; ${this.template(
+    const temp = `source ~/.playbook/index.bash; ${this.template(
       script,
-      remainingArgs,
+      remainingArgs
     )}`;
 
-    term('\n[')
+    term("\n[")
       .bold.white(process.env.USER)
-      .styleReset(':')
+      .styleReset(":")
       .red(selectedProject.path)
       .styleReset(`]$ ${temp}`);
 
     return spawn(temp, [], {
       cwd: selectedProject.path,
-      stdio: ['inherit', 'inherit', 'inherit'],
+      stdio: ["inherit", "inherit", "inherit"],
       shell: true,
     });
   }
 
-  static template(tpl, args) {
+  template(tpl: string, args: string[]) {
     return S(tpl).template({ '@': args.join(' '), ...args }, '${', '}').s;
   }
 
-  static error(err) {
+  error(err: any) {
     if (err.code === 'EACCES') {
       term.red('>>> ').styleReset('Access Denied!');
     } else {
@@ -121,27 +143,27 @@ export default class App {
     process.exit();
   }
 
-  async selectProject(projectName, customFilter = () => true) {
+  async selectProject(projectName: string, customFilter = () => true) {
     let selectedProject;
     if (!projectName) {
       // Ask which project he wants to open
       ({ selectedProject } = await prompts(
         [
           {
-            type: 'autocomplete',
-            message: 'Select project:',
-            name: 'selectedProject',
+            type: "autocomplete",
+            message: "Select project:",
+            name: "selectedProject",
             choices: this.getChoices(customFilter),
             limit: 40,
             suggest: this.suggestFilter,
           },
         ],
-        { onCancel: this.onCancel },
+        { onCancel: this.onCancel }
       )); // Redirecting to stderr in order for it to be used with command substitution
     } else {
       // If project name is mentioned then open directly
       selectedProject = this.settings.projects.find(
-        (project) => project.name.toLowerCase() === projectName.toLowerCase(),
+        (project: { name: string; }) => project.name.toLowerCase() === projectName.toLowerCase(),
       );
     }
     return selectedProject;
@@ -156,117 +178,118 @@ export default class App {
   }
 
   async selectScript(
-    project,
-    args,
+    project: { scripts: any; name: any; },
+    args: string[] | [any, ...any[]],
     scripts = {
       ...('scripts' in this.settings ? this.settings.scripts : {}),
       ...('scripts' in project ? project.scripts : {}),
     },
-  ) {
+  ) : Promise<{ script: any, remainingArgs: any }> {
     const [arg, ...remainingArgs] = args;
     if (arg in scripts) {
       return typeof scripts[arg] === 'string'
         ? { script: scripts[arg], remainingArgs }
         : this.selectScript(project, remainingArgs, scripts[arg]);
     }
-    const { script } = await prompts(
-      [
-        {
-          type: 'autocomplete',
-          message: `Select script to run for ${project.name}:`,
-          name: 'script',
-          choices: Object.entries(scripts).map(([title, value]) => ({
-            title,
-            value,
-            description:
-              typeof value === 'object' && value
-                ? `Select from: [${Object.keys(value).join(', ')}]`
-                : value,
-          })),
-          limit: 40,
-          suggest: this.suggestFilter,
-        },
-      ],
-      { onCancel: this.onCancel },
-    );
-
-    return typeof script === 'string'
+    // const { script } = await prompts(
+    //   [
+    //     {
+    //       type: "autocomplete",
+    //       message: `Select script to run for ${project.name}:`,
+    //       name: "script",
+    //       choices: Object.entries(scripts).map(([title, value]) => ({
+    //         title,
+    //         value,
+    //         description:
+    //           typeof value === "object" && value
+    //             ? `Select from: [${Object.keys(value).join(", ")}]`
+    //             : value,
+    //       })),
+    //       limit: 40,
+    //       suggest: this.suggestFilter,
+    //     },
+    //   ],
+    //   { onCancel: this.onCancel }
+    // );
+    const script = '';
+    return typeof script === "string"
       ? { script, remainingArgs }
       : this.selectScript(project, args, script);
   }
 
   async addProject(projectDirectory = '.', cmdObj = undefined) {
-    const newProject = {};
-    let name;
-    let enteredUrl;
+    // const newProject = {};
+    // let name;
+    // let enteredUrl;
 
-    if (cmdObj.url) {
-      if (projectDirectory !== '.') {
-        term.yellow(
-          "Project's local directory value will be ignore when --url flag is on",
-        );
-      }
+    // if (cmdObj.url) {
+    //   if (projectDirectory !== '.') {
+    //     term.yellow(
+    //       "Project's local directory value will be ignore when --url flag is on",
+    //     );
+    //   }
 
-      if (cmdObj.url === true) {
-        ({ enteredUrl } = await prompts(
-          [
-            {
-              type: 'text',
-              message: 'Project URL :',
-              name: 'enteredUrl',
-              initial: 'https://github.com/',
-              validate: (url) => (this.isURL(url) ? true : 'Not a valid URL'),
-            },
-          ],
-          { onCancel: null },
-        ));
-        name = enteredUrl.split('/').pop(); // Get last route of URL to set default name
-        newProject.path = enteredUrl;
-      } else {
-        if (!this.isURL(cmdObj.url)) {
-          term.red('>>> ').styleReset('Not a valid URL');
-          term.yellow('>>> ').styleReset(
-            `A valid URL looks something like ${term.str.yellow('https://github.com/saurabhdaware/projectman')}`,
-          );
-          return false;
-        }
-        name = cmdObj.url.split('/').pop(); // Get last route of URL to set default name
-        newProject.path = cmdObj.url;
-      }
-    } else {
-      newProject.path = path.resolve(projectDirectory);
-      name = newProject.path.split(path.sep).pop();
-    }
+    //   if (cmdObj.url === true) {
+    //     ({ enteredUrl } = await prompts(
+    //       [
+    //         {
+    //           type: 'text',
+    //           message: 'Project URL :',
+    //           name: 'enteredUrl',
+    //           initial: 'https://github.com/',
+    //           validate: (url: any) => (this.isURL(url) ? true : 'Not a valid URL'),
+    //         },
+    //       ],
+    //       { onCancel },
+    //     ));
+    //     name = enteredUrl.split('/').pop(); // Get last route of URL to set default name
+    //     newProject.path = enteredUrl;
+    //   } else {
+    //     if (!this.isURL(cmdObj.url)) {
+    //       term.red('>>> ').styleReset('Not a valid URL');
+    //       term.yellow('>>> ').styleReset(
+    //         `A valid URL looks something like ${term.str.yellow('https://github.com/saurabhdaware/projectman')}`,
+    //       );
+    //       return false;
+    //     }
+    //     name = cmdObj.url.split('/').pop(); // Get last route of URL to set default name
+    //     newProject.path = cmdObj.url;
+    //   }
+    // } else {
+    //   newProject.path = path.resolve(projectDirectory);
+    //   name = newProject.path.split(path.sep).pop();
+    // }
 
-    ({ finalName: newProject.name } = await prompts(
-      [
-        {
-          type: 'text',
-          message: 'Project Name :',
-          name: 'finalName',
-          initial: name,
-        },
-      ],
-      { onCancel: null },
-    ));
+    // ({ finalName: newProject.name } = await prompts(
+    //   [
+    //     {
+    //       type: 'text',
+    //       message: 'Project Name :',
+    //       name: 'finalName',
+    //       initial: name,
+    //     },
+    //   ],
+    //   { onCancel },
+    // ));
 
-    if (
-      this.settings.projects.some(
-        (project) => project.name.toLowerCase() === newProject.name.toLowerCase(),
-      )
-    ) {
-      term.red('>>> ').styleReset('Project with this name already exists');
-      return false;
-    }
+    // if (
+    //   this.settings.projects.some(
+    //     (project) =>
+    //       project.name.toLowerCase() === newProject.name.toLowerCase()
+    //   )
+    // ) {
+    //   term.red(">>> ").styleReset("Project with this name already exists");
+    //   return false;
+    // }
 
-    this.settings.projects.push(newProject);
+    // this.settings.projects.push(newProject);
 
-    this.writeSettings(this.settings, 'add', 'Project Added');
+    // this.writeSettings(this.settings, "add", "Project Added");
 
-    return newProject;
+    // return newProject;
   }
 
-  async removeProject(projectName) {
+  async removeProject(projectName: string) {
     const { name: selectedProjectName } = await this.selectProject(projectName);
 
     if (!selectedProjectName) {
@@ -286,14 +309,14 @@ export default class App {
   }
 
   writeSettings(
-    data,
+    data: any,
     command = '<command>',
     successMessage = 'Settings updated :D !',
   ) {
     fs.writeFile(
       this.settingsPath,
       `module.exports = ${JSON.stringify(data, null, 4)}`,
-      (err) => {
+      (err: any) => {
         if (err) {
           if (err.code === 'EACCES') {
             const errCmd = process.platform === 'win32'
@@ -317,7 +340,6 @@ export default class App {
       },
     );
   }
-
   async runProjectCommands() {
     const [, , projectName, scriptRaw, ...args] = process.argv;
 
@@ -332,9 +354,9 @@ export default class App {
 
     remainingArgs.unshift(selectedProject.path);
 
-    const temp = `source ~/.projectman/index.bash; ${this.template(
+    const temp = `source ~/.playbook/index.bash; ${this.template(
       script,
-      remainingArgs,
+      remainingArgs
     )}`;
 
     term('\n[')
